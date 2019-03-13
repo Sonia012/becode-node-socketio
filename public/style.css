@@ -9,6 +9,13 @@ body {
 
 #chatWindow {
   height: 300px;
+  max-width: 400px;
+  overflow-y: auto;
+}
+
+#feedback {
+  height: 30px;
+  font-size: 15px;
 }
 
 #mainWrapper {

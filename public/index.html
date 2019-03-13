@@ -3,14 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-  <link href="style.css" rel="stylesheet" type="text/css" />
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <link href="style.css" rel="stylesheet" type="text/css">
   <title>Chat app</title>
 
 </head>
 <body>
 
   <div id="container">
+    <div id="chatroomWrapper">
+      <p>Choose a chat room: </p>
+      <button class="chatrooms" id="gamesRoom">Games</button>
+      <button class="chatrooms" id="sportsRoom">Sport</button>
+    </div>
       <div id="namesWrapper">
         <h2>Chat IO</h2>
         <p>Create Username: </p>
@@ -21,8 +26,10 @@
         </form>
       </div>
 
+
       <div id="mainWrapper">
-        <<h2>Chat IO</h2>
+        <h2>Chat IO</h2>
+        <div id="feedback"></div>
         <div id="chatWrapper">
           <div id="chatWindow"></div>
           <form id="messageForm">

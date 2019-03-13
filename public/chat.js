@@ -12,19 +12,34 @@ const usernameForm = $(`#usernameForm`);
 const users = $(`#users`);
 const username = $(`#username`);
 const error = $(`#error`);
+const feedback = $(`#feedback`);
+const chatroom = $(`.chatrooms`);
+let currentUser;
 
 usernameForm.submit(function(e){
   e.preventDefault();
   socket.emit(`new user`, username.val(), function(data) {
     //if user logs in, we want to hide the userForm and show the chat form
-    if(data){
-      $(`#namesWrapper`).hide();
-      $(`#mainWrapper`).show();
+    if(username.val().trim().length === 0){
+      alert(`Please choose a username`);
     } else {
-      error.html(`Username is taken`)
-    }
+        if(data){
+          currentUser = username.val();
+          $(`#namesWrapper`).hide();
+          $(`#mainWrapper`).show();
+        } else {
+          error.html(`Username is taken`)
+        }
+      }
   })
 });
+
+chatroom.click(handleRoomClick);
+
+function handleRoomClick() {
+  let room = $(this).text();
+  socket.emit(`join`, room);
+}
 
 socket.on(`usernames`, function(data) {
   let html = [];
@@ -43,7 +58,20 @@ messageForm.submit(function(e){
 });
 
 socket.on(`new message`, function(data){
+  feedback.html(``);
   chat.append(`<strong>` + data.user + `</strong>: ` + data.msg + `<br>`);
+  chat.scrollTop(chat[0].scrollHeight)
+})
+
+//When someone is typing, we want to emit an event to the server and we want to
+//say to the server "someone is typing"
+message.keypress(function(){
+  socket.emit(`typing`, currentUser)
+})
+
+//Listen for the typing event
+socket.on(`typing`, function(data){
+  feedback.html(`<p><em>` + data + ` is typing a message...</em></p>`)
 })
 
 // //Emit events
@@ -65,8 +93,4 @@ socket.on(`new message`, function(data){
 // socket.on(`chat`, function(data){
 //   feedback.innerHTML = ``;
 //   output.innerHTML += `<p><strong>` + data.handle + `: </strong>` + data.message + `</p>`
-// })
-// //Listen for the typing event
-// socket.on(`typing`, function(data){
-//   feedback.innerHTML = `<p><em>` + data + ` is typing a message...</em></p>`
 // })

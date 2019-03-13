@@ -33,11 +33,6 @@ io.on(`connection`, function(socket){
       updateUsernames();
     }
   });
-  
-  socket.on(`join`, (room) => {
-    console.log(room);
-    socket.join(room);
-  });
 
   //update Usernames
   function updateUsernames() {
@@ -47,21 +42,21 @@ io.on(`connection`, function(socket){
   //socket = particular socket between the server and that client who's sending the message
   //Handle chat event
   socket.on(`send message`, function(data){
-    console.log(`Got message`, data)
-    io.to(room).emit(`new message`, {msg: data, user: socket.username});
+    //sockets = all the other sockets that connected to the server => the data
+    //that was sent to the server 1 particular socket (client) is taken and sent
+    //back to all the other clients
+    io.sockets.emit(`new message`, {msg: data, user: socket.username});
   });
 
   //Disconnect
   socket.on(`disconnect`, function(data) {
-    // if(!socket.username){
-    //   console.log("disconnected");
-    //   return;
-    // }
+    if(!socket.username){
+      return;
+    }
     //if user disconnects, we want to remove his name from the usernames list (splice)
     //and update the usernames array
     usernames.splice(usernames.indexOf(socket.username), 1);
     updateUsernames();
-    console.log("disconnected");
   })
   //handle typing event (when someone's typing, the server broadcasts to the
   //other sockets (not the original socket) the fact that someone is typing)
