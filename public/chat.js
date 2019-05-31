@@ -5,92 +5,33 @@
 const socket = io.connect(`http://localhost:5000`);
 
 //Query DOM
-const messageForm = $(`#messageForm`);
-const message = $(`#message`);
-const chat = $(`#chatWindow`);
-const usernameForm = $(`#usernameForm`);
-const users = $(`#users`);
-const username = $(`#username`);
-const error = $(`#error`);
-const feedback = $(`#feedback`);
-const chatroom = $(`.chatrooms`);
-let currentUser;
+const message = document.getElementById(`message`);
+const handle = document.getElementById(`handle`);
+const btn = document.getElementById(`send`);
+const output = document.getElementById(`output`);
+const feedback = document.getElementById(`feedback`);
 
-usernameForm.submit(function(e){
-  e.preventDefault();
-  socket.emit(`new user`, username.val(), function(data) {
-    //if user logs in, we want to hide the userForm and show the chat form
-    if(username.val().trim().length === 0){
-      alert(`Please choose a username`);
-    } else {
-        if(data){
-          currentUser = username.val();
-          $(`#namesWrapper`).hide();
-          $(`#mainWrapper`).show();
-        } else {
-          error.html(`Username is taken`)
-        }
-      }
+//Emit events
+btn.addEventListener(`click`, function(){
+  socket.emit(`chat`, {
+    //the "data" used in "socket.on(`chat`, function(data)) used in file index.js"
+    message: message.value,
+    handle: handle.value
   })
-});
-
-chatroom.click(handleRoomClick);
-
-function handleRoomClick() {
-  let room = $(this).text();
-  socket.emit(`join`, room);
-}
-
-socket.on(`usernames`, function(data) {
-  let html = [];
-  //for every username that we scroll through, we are going to add to the html
-  for(let i = 0; i < data.length; i++) {
-    html += data[i] + `<br>`;
-  }
-  users.html(html);
 })
-
-messageForm.submit(function(e){
-  e.preventDefault();
-  console.log(`Submitted`);
-  socket.emit(`send message`, message.val());
-  message.val(``)
-});
-
-socket.on(`new message`, function(data){
-  feedback.html(``);
-  chat.append(`<strong>` + data.user + `</strong>: ` + data.msg + `<br>`);
-  chat.scrollTop(chat[0].scrollHeight)
-})
-
 //When someone is typing, we want to emit an event to the server and we want to
 //say to the server "someone is typing"
-message.keypress(function(){
-  socket.emit(`typing`, currentUser)
+message.addEventListener(`keypress`, function(){
+  socket.emit(`typing`, handle.value)
 })
 
+//Listen for events (on the frontend)
+//listen for the chat event
+socket.on(`chat`, function(data){
+  feedback.innerHTML = ``;
+  output.innerHTML += `<p><strong>` + data.handle + `: </strong>` + data.message + `</p>`
+})
 //Listen for the typing event
 socket.on(`typing`, function(data){
-  feedback.html(`<p><em>` + data + ` is typing a message...</em></p>`)
+  feedback.innerHTML = `<p><em>` + data + ` is typing a message...</em></p>`
 })
-
-// //Emit events
-// btn.addEventListener(`click`, function(){
-//   socket.emit(`chat`, {
-//     //the "data" used in "socket.on(`chat`, function(data)) used in file index.js"
-//     message: message.value,
-//     handle: handle.value
-//   })
-// })
-// //When someone is typing, we want to emit an event to the server and we want to
-// //say to the server "someone is typing"
-// message.addEventListener(`keypress`, function(){
-//   socket.emit(`typing`, handle.value)
-// })
-//
-// //Listen for events (on the frontend)
-// //listen for the chat event
-// socket.on(`chat`, function(data){
-//   feedback.innerHTML = ``;
-//   output.innerHTML += `<p><strong>` + data.handle + `: </strong>` + data.message + `</p>`
-// })

@@ -1,10 +1,11 @@
 const express = require(`express`);
 const socket = require(`socket.io`);
+
+//App setup
 const app = express();
 const server = app.listen(5000, function(){
   console.log(`listening to request on port 5000`)
 });
-let usernames = [ ];
 
 //Static files to serve
 app.use(express.static(`public`));
@@ -20,49 +21,16 @@ const io = socket(server);
 //client is gonna have their own socket between that client and the server
 io.on(`connection`, function(socket){
   console.log(`made socket connection`);
-  //set username
-  socket.on(`new user`, function(data, callback){
-    //check if username is already taken (we don't want different people to
-    //have the same username)
-    if(usernames.indexOf(data) != -1) {
-      callback(false)
-    } else {
-      callback(true);
-      socket.username = data;
-      usernames.push(socket.username);
-      updateUsernames();
-    }
-  });
-  
-  socket.on(`join`, (room) => {
-    console.log(room);
-    socket.join(room);
-  });
-
-  //update Usernames
-  function updateUsernames() {
-    io.sockets.emit(`usernames`, usernames);
-  }
 
   //socket = particular socket between the server and that client who's sending the message
+  //"data" = the data object (message and handle) from file chat.js
   //Handle chat event
-  socket.on(`send message`, function(data){
-    console.log(`Got message`, data)
-    io.to(room).emit(`new message`, {msg: data, user: socket.username});
+  socket.on(`chat`, function(data){
+    //sockets = all the other sockets that connected to the server => the data
+    //that was sent to the server 1 particular socket (client) is taken and sent
+    //back to all the other clients
+    io.sockets.emit(`chat`, data);
   });
-
-  //Disconnect
-  socket.on(`disconnect`, function(data) {
-    // if(!socket.username){
-    //   console.log("disconnected");
-    //   return;
-    // }
-    //if user disconnects, we want to remove his name from the usernames list (splice)
-    //and update the usernames array
-    usernames.splice(usernames.indexOf(socket.username), 1);
-    updateUsernames();
-    console.log("disconnected");
-  })
   //handle typing event (when someone's typing, the server broadcasts to the
   //other sockets (not the original socket) the fact that someone is typing)
   socket.on(`typing`, function(data){
